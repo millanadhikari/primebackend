@@ -1,0 +1,75 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// User model with role-based access (Admin, Coordinator, Client)
+model User {
+    id        String   @id @default(cuid())
+    email     String   @unique
+    password  String
+    role      UserRole @default(CLIENT)
+    firstName String?
+    lastName  String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    isActive  Boolean  @default(true)
+
+    // Different fields based on role
+    // Admin fields
+    adminLevel  AdminLevel? // Only for ADMIN role
+    permissions String[] // Only for ADMIN role
+
+    // Coordinator fields
+    department String? // Only for COORDINATOR role
+    region     String? // Only for COORDINATOR role
+
+    // Client fields
+    clientId String? // Only for CLIENT role
+    company  String? // Only for CLIENT role
+
+    // Common fields for all roles
+    refreshTokens RefreshToken[]
+
+    // For future implementation
+    profileImage         String?
+    isVerified           Boolean   @default(false)
+    verificationToken    String?
+    resetPasswordToken   String?
+    resetPasswordExpires DateTime?
+
+    @@map("users")
+}
+
+// Enum for user roles
+enum UserRole {
+    ADMIN
+    COORDINATOR
+    CLIENT
+}
+
+// Enum for admin levels
+enum AdminLevel {
+    SUPER
+    STANDARD
+}
+
+// RefreshToken model for JWT refresh tokens
+model RefreshToken {
+    id        String   @id @default(cuid())
+    token     String   @unique
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    expiresAt DateTime
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    isRevoked Boolean  @default(false)
+    ipAddress String?
+    userAgent String?
+
+    @@map("refresh_tokens")
+}
