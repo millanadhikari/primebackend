@@ -7,11 +7,11 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 
 // Import database configuration
-import { connectDatabase, checkDatabaseHealth } from './src/config/database.js';
+import { checkDatabaseHealth } from './config/database.js';
 
 // Import routes
-import authRoutes from './src/routes/authRoutes.js';
-import clientRoutes from './src/routes/clientRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import clientRoutes from './routes/clientRoutes.js';
 
 
 // Import middleware
@@ -23,8 +23,7 @@ const __dirname = path.dirname(__filename);
 
 console.log('Current __dirname:', __dirname);
 console.log('Files in root:', await import('fs/promises').then(fs => fs.readdir(__dirname)));
-console.log('Files in src:', await import('fs/promises').then(fs => fs.readdir(path.join(__dirname, 'src'))));
-
+console.log('Files in src:', await import('fs/promises').then(fs => fs.readdir(__dirname)));
 
 
 const app = express();
