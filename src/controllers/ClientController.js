@@ -8,6 +8,7 @@ export class ClientController {
      * Register a new client
      * POST /api/client/signup
      */
+    // /lkjsdlfkj
     static async signup(req, res, next) {
         try {
             const clientData = req.body;
