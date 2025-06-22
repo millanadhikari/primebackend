@@ -27,8 +27,10 @@ router.put('/profile', AuthController.updateProfile);
 router.post('/change-password', AuthController.changePassword);
 router.post('/logout-all', AuthController.logoutAll);
 
+router.delete('/delete-account', AuthController.deleteUserById);
+
 // Admin-only routes (example for future use)
-// router.get('/users', requireAdmin, AuthController.getAllUsers);
+router.get('/users', requireAdmin, AuthController.getAllUsers);
 // router.delete('/users/:id', requireAdmin, AuthController.deleteUser);
 
 export default router;

@@ -50,7 +50,9 @@ export const authenticateToken = async (req, res, next) => {
  * @param {string|Array<string>} roles - Required role(s)
  */
 export const requireRole = (roles) => {
+    console.log('roles', roles)
     return (req, res, next) => {
+        console.log('requireRole middleware initialized with roles:', req.user);
         if (!req.user) {
             return res.status(401).json({
                 status: 'error',

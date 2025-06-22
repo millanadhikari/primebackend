@@ -152,4 +152,13 @@ export class AuthService {
         const { password, role, adminLevel, permissions, ...safeUpdateData } = updateData;
         return await UserModel.updateUser(userId, safeUpdateData);
     }
+
+
+    static async deleteById(id) {
+        return await UserModel.deleteById(id);
+    }
+
+    static async getAllUsers(filters) {
+        return await UserModel.findAllWithFilters(filters);
+    }
 }

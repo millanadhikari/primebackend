@@ -83,6 +83,9 @@ export class UserModel {
                 role: true,
                 firstName: true,
                 lastName: true,
+                phone: true,
+                address: true,
+                emergencyContact: true,
                 adminLevel: true,
                 permissions: true,
                 department: true,
@@ -93,7 +96,15 @@ export class UserModel {
                 isVerified: true,
                 createdAt: true,
                 updatedAt: true,
-                profileImage: true
+                profileImage: true,
+                licenseNumber: true,
+                specialization: true,
+                joinedDate: true,
+                lastLogin: true,
+                twoFactorEnabled: true,
+                emailNotifications: true,
+                smsNotifications: true,
+
             }
         });
     }
@@ -224,5 +235,80 @@ export class UserModel {
         });
 
         return result.count;
+    }
+
+
+    static async deleteById(id) {
+        try {
+            return await prisma.user.delete({
+                where: { id },
+                select: {
+                    id: true,
+                },
+            });
+        } catch (error) {
+            // Return null instead of throwing for "record not found"
+            if (error.code === 'P2025') {
+                return null;
+            }
+            throw error;
+        }
+    }
+
+    static async findAllWithFilters({ page, limit, search, status, startDate, endDate }) {
+        const skip = (page - 1) * limit;
+
+        const where = {
+            AND: [
+                // Search by name or email
+                {
+                    OR: [
+                        { firstName: { contains: search, mode: 'insensitive' } },
+                        { lastName: { contains: search, mode: 'insensitive' } },
+                        { email: { contains: search, mode: 'insensitive' } },
+                    ],
+                },
+                // Optional status filter
+                status ? { status } : {},
+                // Optional date range filter
+                startDate && endDate
+                    ? {
+                        createdAt: {
+                            gte: new Date(startDate),
+                            lte: new Date(endDate),
+                        },
+                    }
+                    : {},
+            ],
+        };
+
+        const [users, total] = await Promise.all([
+            prisma.user.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    isActive: true,
+                    role: true,
+                    createdAt: true,
+                },
+            }),
+            prisma.user.count({ where }),
+        ]);
+
+        return {
+            users,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
     }
 }

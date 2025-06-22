@@ -11,6 +11,8 @@ import { connectDatabase, checkDatabaseHealth } from './config/database.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
+import clientRoutes from './routes/clientRoutes.js';
+
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -27,11 +29,11 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.'
 });
-app.use('/api/', limiter);
+// app.use('/api/', lim iter);
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -63,7 +65,12 @@ app.get('/health', async (req, res) => {
 });
 
 // API routes
+app.use('/api/client', (req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
 app.use('/api/auth', authRoutes);
+app.use('/api/client', clientRoutes)
 
 // 404 handler
 app.use((req, res) => {

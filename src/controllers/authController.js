@@ -44,6 +44,7 @@ export class AuthController {
      * POST /api/auth/login
      */
     static async login(req, res, next) {
+        console.log('Login request body:', req.body);
         try {
             const { email, password } = req.body;
             const ipAddress = req.ip || req.connection.remoteAddress;
@@ -75,6 +76,38 @@ export class AuthController {
      * Refresh access token
      * POST /api/auth/refresh-token
      */
+    // static async refreshToken(req, res, next) {
+    //     try {
+    //         const refreshToken = req.cookies.refreshToken;
+
+    //         if (!refreshToken) {
+    //             return res.status(401).json({
+    //                 status: 'error',
+    //                 message: 'Refresh token not provided',
+    //             });
+    //         }
+
+    //         const result = await AuthService.refreshToken(refreshToken);
+
+    //         res.cookie('refreshToken', result.tokens.refreshToken, {
+    //             httpOnly: true,
+    //             secure: process.env.NODE_ENV === 'production',
+    //             sameSite: 'strict',
+    //             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    //         });
+
+    //         res.status(200).json({
+    //             status: 'success',
+    //             message: 'Token refreshed successfully',
+    //             data: {
+    //                 accessToken: result.tokens.accessToken,
+    //             },
+    //         });
+    //     } catch (error) {
+    //         res.clearCookie('refreshToken');
+    //         next(error);
+    //     }
+    // }
     static async refreshToken(req, res, next) {
         try {
             const refreshToken = req.cookies.refreshToken;
@@ -91,8 +124,8 @@ export class AuthController {
             res.cookie('refreshToken', result.tokens.refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                sameSite: 'lax',
+                maxAge: 7 * 24 * 60 * 60 * 1000,
             });
 
             res.status(200).json({
@@ -103,11 +136,21 @@ export class AuthController {
                 },
             });
         } catch (error) {
+            console.error('Refresh token error:', error);
             res.clearCookie('refreshToken');
+
+            // Handle P2025 and other refresh token errors
+            if (error.code === 'P2025' || error.message?.includes('Invalid') || error.message?.includes('expired')) {
+                return res.status(401).json({
+                    status: 'error',
+                    message: 'Invalid or expired refresh token',
+                });
+            }
+
+            console.error('Error during token refresh:', error);
             next(error);
         }
     }
-
     /**
      * Logout user
      * POST /api/auth/logout
@@ -115,23 +158,33 @@ export class AuthController {
     static async logout(req, res, next) {
         try {
             const refreshToken = req.cookies.refreshToken;
+            console.log('Logout attempt with token:', refreshToken ? 'present' : 'missing');
 
             if (refreshToken) {
                 await AuthService.logout(refreshToken);
+                console.log('Token deleted successfully');
             }
 
             res.clearCookie('refreshToken');
-
             res.status(200).json({
                 status: 'success',
                 message: 'Logout successful',
             });
         } catch (error) {
+            console.error('Logout error:', error.code, error.message);
             res.clearCookie('refreshToken');
+
+            // Don't fail logout if token was already gone
+            if (error.code === 'P2025') {
+                return res.status(200).json({
+                    status: 'success',
+                    message: 'Logout successful',
+                });
+            }
+
             next(error);
         }
     }
-
     /**
      * Logout from all devices
      * POST /api/auth/logout-all
@@ -211,6 +264,7 @@ export class AuthController {
      * POST /api/auth/change-password
      */
     static async changePassword(req, res, next) {
+        console.log('Change password request body:', req.body);
         try {
             const { currentPassword, newPassword } = req.body;
             const userId = req.user.userId;
@@ -278,6 +332,7 @@ export class AuthController {
      * GET /api/auth/me
      */
     static async getCurrentUser(req, res, next) {
+        console.log('Current user request:', req.user);
         try {
             const userId = req.user.userId;
             const user = await AuthService.getUserProfile(userId);
@@ -297,7 +352,63 @@ export class AuthController {
             next(error);
         }
     }
+    // Delete user profile
+    static async deleteUserById(req, res, next) {
+        try {
+            const { id } = req.params;
 
+            const deletedUser = await AuthService.deleteById(id);
+
+            if (!deletedUser) {
+                return res.status(404).json({
+                    status: 'fail',
+                    message: 'User not found',
+                });
+            }
+
+            res.status(200).json({
+                status: 'success',
+                message: 'User deleted successfully',
+                data: {
+                    id: deletedUser.id,
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async getAllUsers(req, res, next) {
+        try {
+            const {
+                page = 1,
+                limit = 10,
+                search = '',
+                status,
+                startDate,
+                endDate,
+            } = req.query;
+
+            const filters = {
+                page: Number(page),
+                limit: Number(limit),
+                search,
+                status,
+                startDate,
+                endDate,
+            };
+
+            const result = await AuthService.getAllUsers(filters);
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Users fetched successfully',
+                data: result,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
     /**
      * Health check
      * GET /api/auth/health
