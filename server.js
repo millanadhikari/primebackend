@@ -15,7 +15,17 @@ import clientRoutes from './src/routes/clientRoutes.js';
 
 
 // Import middleware
-import { errorHandler } from './src/middleware/errorHandler.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+console.log('Current __dirname:', __dirname);
+console.log('Files in root:', await import('fs/promises').then(fs => fs.readdir(__dirname)));
+console.log('Files in src:', await import('fs/promises').then(fs => fs.readdir(path.join(__dirname, 'src'))));
+
+
 
 const app = express();
 const port = process.env.PORT || 3001;
