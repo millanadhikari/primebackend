@@ -1,8 +1,6 @@
 import { UserModel } from '../models/userModel.js';
 import { ClientModel } from '../models/clientModel.js';
 
-import { comparePassword } from '../utils/password.js';
-import { generateTokens, verifyRefreshToken, generateSecureToken } from '../utils/jwt.js';
 
 export class ClientService {
   static async register(clientData) {

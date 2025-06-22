@@ -7,15 +7,15 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 
 // Import database configuration
-import { connectDatabase, checkDatabaseHealth } from './config/database.js';
+import { connectDatabase, checkDatabaseHealth } from './src/config/database.js';
 
 // Import routes
-import authRoutes from './routes/authRoutes.js';
-import clientRoutes from './routes/clientRoutes.js';
+import authRoutes from './src/routes/authRoutes.js';
+import clientRoutes from './src/routes/clientRoutes.js';
 
 
 // Import middleware
-import { errorHandler } from './middleware/errorHandler.js';
+import { errorHandler } from './src/middleware/errorHandler.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
