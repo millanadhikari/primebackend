@@ -1,3 +1,4 @@
+import cloudinary from '../config/cloudinary.js';
 import prisma from '../config/database.js';
 import { hashPassword } from '../utils/password.js';
 
@@ -6,30 +7,31 @@ import { hashPassword } from '../utils/password.js';
  */
 export class UserModel {
     static async createUser(userData) {
-        const { email, password, role, ...roleSpecificData } = userData;
+        const { email, password, defaultPassword, role, ...roleSpecificData } = userData;
 
         const hashedPassword = await hashPassword(password);
 
         let userCreateData = {
             email,
             password: hashedPassword,
+            defaultPassword,
             role: role || 'CLIENT'
         };
 
-        switch (role) {
-            case 'ADMIN':
-                userCreateData.adminLevel = roleSpecificData.adminLevel || 'STANDARD';
-                userCreateData.permissions = roleSpecificData.permissions || [];
-                break;
-            case 'COORDINATOR':
-                userCreateData.department = roleSpecificData.department;
-                userCreateData.region = roleSpecificData.region;
-                break;
-            case 'CLIENT':
-                userCreateData.clientId = roleSpecificData.clientId;
-                userCreateData.company = roleSpecificData.company;
-                break;
-        }
+        // switch (role) {
+        //     case 'ADMIN':
+        //         userCreateData.adminLevel = roleSpecificData.adminLevel || 'STANDARD';
+        //         userCreateData.permissions = roleSpecificData.permissions || [];
+        //         break;
+        //     case 'COORDINATOR':
+        //         userCreateData.department = roleSpecificData.department;
+        //         userCreateData.region = roleSpecificData.region;
+        //         break;
+        //     case 'CLIENT':
+        //         userCreateData.clientId = roleSpecificData.clientId;
+        //         userCreateData.company = roleSpecificData.company;
+        //         break;
+        // }
 
         if (roleSpecificData.firstName) userCreateData.firstName = roleSpecificData.firstName;
         if (roleSpecificData.lastName) userCreateData.lastName = roleSpecificData.lastName;
@@ -50,6 +52,7 @@ export class UserModel {
                     clientId: true,
                     company: true,
                     isActive: true,
+                    status: true,
                     isVerified: true,
                     createdAt: true,
                     updatedAt: true
@@ -88,15 +91,18 @@ export class UserModel {
                 emergencyContact: true,
                 adminLevel: true,
                 permissions: true,
+                gender: true,
                 department: true,
                 region: true,
                 clientId: true,
+                languageSpoken: true,
                 company: true,
                 isActive: true,
                 isVerified: true,
                 createdAt: true,
                 updatedAt: true,
                 profileImage: true,
+                profileImagePublicId: true, // Include Cloudinary public ID
                 licenseNumber: true,
                 specialization: true,
                 joinedDate: true,
@@ -104,14 +110,21 @@ export class UserModel {
                 twoFactorEnabled: true,
                 emailNotifications: true,
                 smsNotifications: true,
+                dob: true,
+                kinEmail: true,
+                kinPhone: true,
+                kinName: true,
+                kinRelation: true,
+
 
             }
         });
     }
 
     static async updateUser(id, updateData) {
-        const { password, id: userId, createdAt, ...safeUpdateData } = updateData;
-
+        const { id: userId, createdAt, ...safeUpdateData } = updateData;
+        console.log('Updating user with data 2:', safeUpdateData);
+        console.log('User ID:', id);
         return await prisma.user.update({
             where: { id },
             data: safeUpdateData,
@@ -128,6 +141,7 @@ export class UserModel {
                 clientId: true,
                 company: true,
                 isActive: true,
+                gender: true,
                 isVerified: true,
                 updatedAt: true,
                 profileImage: true
@@ -239,6 +253,21 @@ export class UserModel {
 
 
     static async deleteById(id) {
+        const user = await prisma.user.findUnique({
+        where: { id: id },
+        include: { documents: true },
+    });
+
+        if (user.profileImage) {
+            const publicId = extractPublicId(user.profileImagePublicId);
+            await cloudinary.uploader.destroy(publicId);
+        }
+
+        for (const doc of user.documents) {
+            if (doc.imagePublicId) {
+                await cloudinary.uploader.destroy(doc.imagePublicId);
+            }
+        }
         try {
             return await prisma.user.delete({
                 where: { id },
@@ -255,7 +284,7 @@ export class UserModel {
         }
     }
 
-    static async findAllWithFilters({ page, limit, search, status, startDate, endDate }) {
+    static async findAllWithFilters({ page, limit, search, status }) {
         const skip = (page - 1) * limit;
 
         const where = {
@@ -271,14 +300,6 @@ export class UserModel {
                 // Optional status filter
                 status ? { status } : {},
                 // Optional date range filter
-                startDate && endDate
-                    ? {
-                        createdAt: {
-                            gte: new Date(startDate),
-                            lte: new Date(endDate),
-                        },
-                    }
-                    : {},
             ],
         };
 
@@ -293,9 +314,13 @@ export class UserModel {
                     firstName: true,
                     lastName: true,
                     email: true,
-                    isActive: true,
+                    status: true,
                     role: true,
                     createdAt: true,
+                    phone: true,
+                    employmentType: true,
+                    joinedDate: true,
+
                 },
             }),
             prisma.user.count({ where }),

@@ -46,21 +46,30 @@ datasource db {
 // }
 
 model User {
-    id       String   @id @default(cuid())
-    email    String   @unique
-    password String
-    role     UserRole @default(CLIENT)
-
+    id                  String      @id @default(cuid())
+    email               String      @unique
+    password            String
+    role                UserRole    @default(CLIENT)
+    defaultPassword     String
+    status              String? // e.g. 'Active', 'Inactive', 'Pending'
     // Name & contact
-    firstName        String?
-    lastName         String?
-    phone            String?
-    address          String?
-    emergencyContact String?
-
+    firstName           String
+    middleName          String?
+    lastName            String
+    gender              String?
+    dob                 DateTime?
+    phone               String?
+    unitApartmentNumber String?
+    address             String?
+    emergencyContact    String?
+    employmentType      String? // e.g. 'Full-time', 'Part-time', 'Contractor'
+    kinName             String? // Next of kin name
+    kinPhone            String? // Next of kin phone number
+    kinEmail            String? // Next of kin email address
+    kinRelation         String? // Next of kin relation (e.g. 'Parent', 'Sibling', 'Friend') 
     // Admin-specific
-    adminLevel  AdminLevel? // Only for ADMIN role
-    permissions String[] // Only for ADMIN role
+    adminLevel          AdminLevel? // Only for ADMIN role
+    permissions         String[] // Only for ADMIN role
 
     // Coordinator-specific
     department String? // Only for COORDINATOR role
@@ -72,6 +81,8 @@ model User {
 
     // Common optional fields
     profileImage         String?
+    profileImagePublicId String? // Cloudinary public ID for the profile image
+    languageSpoken       String?
     isVerified           Boolean   @default(false)
     verificationToken    String?
     resetPasswordToken   String?
@@ -88,10 +99,13 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    isActive Boolean @default(true)
+    isActive            Boolean @default(true)
+    sendOnboardingEmail Boolean @default(true)
+    inviteStaffViaSMS   Boolean @default(false)
 
     // Relations
     refreshTokens RefreshToken[]
+    documents     Document[] // one-to-many
 
     @@map("users")
 }
@@ -142,7 +156,8 @@ model Client {
     languageSpoken String?
     status         String? // e.g. 'Active', 'Inactive', 'Pending'
 
-    profilePictureUrl String?
+    profilePictureUrl    String?
+    profileImagePublicId String? // Cloudinary public ID for the profile image
 
     generalInfo     String?
     usefulInfo      String?
@@ -174,12 +189,16 @@ model Team {
 }
 
 model Document {
-    id         String   @id @default(cuid())
-    name       String
-    url        String // This should be the S3 public or signed URL
+    id            String  @id @default(cuid())
+    name          String
+    url           String // This should be the S3 public or signed URL
+    imagePublicId String? // Cloudinary public ID for the profile image
+
     type       String? // Optional: e.g. 'PDF', 'IMAGE', 'DOCX', etc.
     uploadedAt DateTime @default(now())
-    client     Client   @relation(fields: [clientId], references: [id])
+    client     Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+    user       User?    @relation(fields: [userId], references: [id])
+    userId     String?
     clientId   String
 }
 
@@ -211,4 +230,25 @@ model Contact {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
+
+model Blog {
+    id            String  @id @default(cuid())
+    title         String
+    author        String
+    type          String
+    status        String
+    excerpt       String
+    content       String
+    featuredImage String?
+    imagePublicId String? // Cloudinary public ID for the profile image
+
+    publishDate     DateTime?
+    tags            String[] // Stored as string array (PostgreSQL only)
+    metaTitle       String
+    metaDescription String
+    isFeatured      Boolean   @default(false)
+    slug            String    @unique
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
 }

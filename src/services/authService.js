@@ -13,13 +13,13 @@ export class AuthService {
 
         if (password.length < 6) throw new Error('Password must be at least 6 characters long');
 
-        if (role === 'COORDINATOR' && (!userData.department || !userData.region)) {
-            throw new Error('Department and region are required for coordinators');
-        }
+        // if (role === 'COORDINATOR' && (!userData.department || !userData.region)) {
+        //     throw new Error('Department and region are required for coordinators');
+        // }
 
-        if (role === 'CLIENT' && !userData.company) {
-            throw new Error('Company is required for clients');
-        }
+        // if (role === 'CLIENT' && !userData.company) {
+        //     throw new Error('Company is required for clients');
+        // }
 
         const user = await UserModel.createUser(userData);
         const tokens = generateTokens(user);
@@ -149,9 +149,16 @@ export class AuthService {
     }
 
     static async updateProfile(userId, updateData) {
+
         const { password, role, adminLevel, permissions, ...safeUpdateData } = updateData;
         return await UserModel.updateUser(userId, safeUpdateData);
     }
+
+    static async updateUser(userId, updateData) {
+        // const { password, role, adminLevel, permissions, ...safeUpdateData } = updateData;
+        return await UserModel.updateUser(userId, updateData);
+    }
+
 
 
     static async deleteById(id) {

@@ -1,4 +1,6 @@
+import cloudinary from '../config/cloudinary.js';
 import prisma from '../config/database.js';
+import { extractPublicId } from '../utils/cloudinaryUtils.js';
 import { hashPassword } from '../utils/password.js';
 
 /**
@@ -185,7 +187,7 @@ export class ClientModel {
                     email: true,
                     status: true,
                     phone: true,
-                    dob:true,
+                    dob: true,
                     // Add other summary fields if needed (e.g., createdAt)
                 },
             }),
@@ -293,11 +295,44 @@ export class ClientModel {
         });
     }
 
-    static async update(clientId, updateData) {
-        // const {createdAt, ...safeUpdateData } = updateData
-        console.log('updateData:', updateData.data);
-        const id = clientId
+    // static async update(clientId, updateData) {
+    //     // const {createdAt, ...safeUpdateData } = updateData
+    //     const id = clientId
 
+    //     return await prisma.client.update({
+    //         where: { id },
+    //         data: updateData,
+    //         select: {
+    //             id: true,
+    //             email: true,
+    //             firstName: true,
+    //             lastName: true,
+
+    //         }
+    //     });
+    // }
+
+    static async update(clientId, updateData) {
+        const id = clientId;
+
+        // Manually delete related documents before updating the client
+        if (updateData.documents?.delete) {
+            const docsToDelete = updateData.documents.delete;
+
+            for (const doc of docsToDelete) {
+                await prisma.document.deleteMany({
+                    where: {
+                        id: doc.id,
+                        clientId: id, // Ensure ownership
+                    },
+                });
+            }
+
+            // Remove the `delete` key so Prisma doesn't try to delete it again
+            delete updateData.documents.delete;
+        }
+
+        // Proceed to update the client
         return await prisma.client.update({
             where: { id },
             data: updateData,
@@ -306,12 +341,27 @@ export class ClientModel {
                 email: true,
                 firstName: true,
                 lastName: true,
-
             }
         });
     }
 
+
     static async deleteById(id) {
+        const client = await prisma.client.findUnique({
+            where: { id: id },
+            include: { documents: true },
+        });
+
+        if (client.profilePictureUrl) {
+            const publicId = extractPublicId(client.profileImagePublicId);
+            await cloudinary.uploader.destroy(publicId);
+        }
+
+        for (const doc of client.documents) {
+            if (doc.imagePublicId) {
+                await cloudinary.uploader.destroy(doc.imagePublicId);
+            }
+        }
         try {
             return await prisma.client.delete({
                 where: { id },

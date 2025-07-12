@@ -5,15 +5,14 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
-
 // Import database configuration
 import { checkDatabaseHealth } from './config/database.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
-
-
+import blogRoutes from './routes/blogRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 // Import middleware
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -23,7 +22,7 @@ const __dirname = path.dirname(__filename);
 
 console.log('Current __dirname:', __dirname);
 console.log('Files in root:', await import('fs/promises').then(fs => fs.readdir(__dirname)));
-console.log('Files in src:', await import('fs/promises').then(fs => fs.readdir(__dirname)));
+console.log('Files in src:', await import('fs/promises').then(fs => fs.readdir(__dirname,)));
 
 
 const app = express();
@@ -80,13 +79,24 @@ app.use('/api/client', (req, res, next) => {
 });
 app.use('/api/auth', authRoutes);
 app.use('/api/client', clientRoutes)
-
+app.use('/api/blog', blogRoutes);
+app.use('/api/upload', uploadRoutes);
+// app.use('/api/upload', (req, res, next) => {
+//   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+//   next();
+// });
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
     status: 'error',
     message: 'Route not found'
   });
+});
+
+console.log({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 app.listen(port, () => console.log(`listening on localhost:${port}`))

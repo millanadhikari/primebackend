@@ -294,6 +294,7 @@ export class AuthController {
     static async getProfile(req, res, next) {
         try {
             const userId = req.user.userId;
+      
 
             const user = await AuthService.getUserProfile(userId);
 
@@ -326,7 +327,24 @@ export class AuthController {
             next(error);
         }
     }
+ 
+     static async updateUserById(req, res, next) {
+        try {
+            const userId = req.params.id
+            const updateData = req.body;
+            console.log('Update data for user 1:', updateData);
+            const updatedUser = await AuthService.updateUser(userId, updateData);
 
+            res.status(200).json({
+                status: 'success',
+                message: 'Profile updated successfully',
+                data: { user: updatedUser },
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+ 
     /**
      * Get current user info
      * GET /api/auth/me
@@ -385,8 +403,7 @@ export class AuthController {
                 limit = 10,
                 search = '',
                 status,
-                startDate,
-                endDate,
+
             } = req.query;
 
             const filters = {
@@ -394,8 +411,7 @@ export class AuthController {
                 limit: Number(limit),
                 search,
                 status,
-                startDate,
-                endDate,
+
             };
 
             const result = await AuthService.getAllUsers(filters);
@@ -404,6 +420,28 @@ export class AuthController {
                 status: 'success',
                 message: 'Users fetched successfully',
                 data: result,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async getUserById(req, res, next) {
+        try {
+            const { id } = req.params;
+            const user = await AuthService.getUserProfile(id);
+
+            if (!user) {
+                return res.status(404).json({
+                    status: 'fail',
+                    message: 'Staff not found',
+                });
+            }
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Staff fetched successfully',
+                data: { user },
             });
         } catch (error) {
             next(error);

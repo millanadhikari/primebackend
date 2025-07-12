@@ -32,4 +32,10 @@ router.delete('/delete-account', AuthController.deleteUserById);
 router.get('/users', requireAdmin, AuthController.getAllUsers);
 // router.delete('/users/:id', requireAdmin, AuthController.deleteUser);
 
+//Admin or Cordinator routes GEt users by ID
+router.get('/users/:id', requireAdmin, AuthController.getUserById);
+
+//Admin Update user by ID
+router.put('/users/:id', requireAdmin, AuthController.updateUserById);
+
 export default router;
