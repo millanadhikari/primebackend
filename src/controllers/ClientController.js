@@ -133,16 +133,5 @@ export class ClientController {
      * Health check
      * GET /api/auth/health
      */
-    static async healthCheck(req, res, next) {
-        try {
-            res.status(200).json({
-                status: 'success',
-                message: 'Auth service is healthy',
-                timestamp: new Date().toISOString(),
-                service: 'authentication-api',
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
+  
 }
