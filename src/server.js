@@ -9,10 +9,10 @@ import rateLimit from 'express-rate-limit';
 import { checkDatabaseHealth } from './config/database.js';
 
 // Import routes
-import authRoutes from './routes/authRoutes.js';
-import clientRoutes from './routes/clientRoutes.js';
-import blogRoutes from './routes/blogRoutes.js';
-import uploadRoutes from './routes/uploadRoutes.js';
+// import authRoutes from './routes/authRoutes.js';
+// import clientRoutes from './routes/clientRoutes.js';
+// import blogRoutes from './routes/blogRoutes.js';
+// import uploadRoutes from './routes/uploadRoutes.js';
 // Import middleware
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -73,14 +73,14 @@ app.get('/health', async (req, res) => {
 });
 
 // API routes
-app.use('/api/client', (req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  next();
-});
-app.use('/api/auth', authRoutes);
-app.use('/api/client', clientRoutes)
-app.use('/api/blog', blogRoutes);
-app.use('/api/upload', uploadRoutes);
+// app.use('/api/client', (req, res, next) => {
+//   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+//   next();
+// });
+// app.use('/api/auth', authRoutes);
+// app.use('/api/client', clientRoutes)
+// app.use('/api/blog', blogRoutes);
+// app.use('/api/upload', uploadRoutes);
 // app.use('/api/upload', (req, res, next) => {
 //   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
 //   next();
