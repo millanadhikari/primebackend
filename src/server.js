@@ -9,7 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { checkDatabaseHealth } from './config/database.js';
 
 // Import routes
-// import authRoutes from './routes/authRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 // import clientRoutes from './routes/clientRoutes.js';
 // import blogRoutes from './routes/blogRoutes.js';
 // import uploadRoutes from './routes/uploadRoutes.js';
@@ -77,7 +77,7 @@ app.get('/health', async (req, res) => {
 //   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
 //   next();
 // });
-// app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 // app.use('/api/client', clientRoutes)
 // app.use('/api/blog', blogRoutes);
 // app.use('/api/upload', uploadRoutes);
