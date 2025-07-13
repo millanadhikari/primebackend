@@ -13,6 +13,7 @@ import authRoutes from './routes/authRoutes.js';
 // import clientRoutes from './routes/clientRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 // Import middleware
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -106,6 +107,7 @@ app.use('/api/upload', (req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
 });
+app.use('/api/message', messageRoutes)
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({

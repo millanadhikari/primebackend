@@ -20,6 +20,6 @@ router.put('/:id', authenticateToken, requireCoordinatorOrAdmin, ClientControlle
 router.delete('/:id', authenticateToken, requireCoordinatorOrAdmin, ClientController.deleteClientById);
 
 //STAFF ROUTES
-
+ 
 
 export default router;
