@@ -76,6 +76,8 @@ export class BlogModel {
                     status: true,
                     excerpt: true,
                     publishDate: true,
+                    featuredImage: true,
+                    tags: true,
                     isFeatured: true,
 
                     // Add other summary fields if needed (e.g., createdAt)
