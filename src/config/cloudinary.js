@@ -45,4 +45,31 @@ export async function deleteFileFromCloudinary(publicId) {
         throw error;
     }
 }
+export async function getCloudinaryUsage() {
+    const cloud_name = 'dgrcwlvx2';
+    const api_key = '336426224285731';
+    const api_secret = 'Jf3EheYBVIzjvBhrhyLPxVgNhmw';
+
+    const authString = `${api_key}:${api_secret}`;
+    const base64Auth = Buffer.from(authString).toString('base64'); // Only works server-side
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/usage`, {
+        headers: {
+            Authorization: `Basic ${base64Auth}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Cloudinary usage fetch failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(data)
+
+    const usedGB = (data.storage.usage / 1_073_741_824).toFixed(2);
+    const limitGB = (data.storage.limit / 1_073_741_824).toFixed(2);
+
+    return data;
+}
+
 export default cloudinary;

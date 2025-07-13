@@ -17,6 +17,7 @@ import messageRoutes from './routes/messageRoutes.js';
 // Import middleware
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getCloudinaryUsage } from './config/cloudinary.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -121,6 +122,8 @@ console.log({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+const data = await getCloudinaryUsage()
+console.log(data)
 
 app.listen(port, () => console.log(`listening on localhost:${port}`))
 // Error handling mid
