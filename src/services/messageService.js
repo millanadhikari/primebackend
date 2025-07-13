@@ -16,7 +16,7 @@ export class MessageService {
 
 
         try {
-            const messages = await MessageModel.findMany(page, limit, search, status)
+            const messages = await MessageModel.findAll(page, limit, search, status)
 
             return messages;
         } catch (error) {

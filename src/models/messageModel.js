@@ -24,7 +24,7 @@ export class MessageModel {
     }
 
     // Fetch all messages with pagination and search
-    static async findMany(
+    static async findAll(
         page = '1',
         limit = '10',
         search = '',
