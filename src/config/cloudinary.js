@@ -1,5 +1,6 @@
 // /config/cloudinary.js
 import { v2 as cloudinary } from "cloudinary";
+import prisma from "./database.js";
 // cloudinary.config({
 //     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 //     api_key: process.env.CLOUDINARY_API_KEY,
@@ -71,5 +72,45 @@ export async function getCloudinaryUsage() {
 
     return data;
 }
+
+// utils/neon.ts
+export async function getNeonUsage() {
+    try {
+        // Get database size in bytes
+        const dbSizeResult = await prisma.$queryRawUnsafe(
+            `SELECT pg_database_size(current_database()) AS bytes`
+        );
+        const dbSize = parseInt(dbSizeResult[0].bytes, 10);
+
+        // Get number of active connections
+        const connResult = await prisma.$queryRawUnsafe(
+            `SELECT COUNT(*)::int FROM pg_stat_activity`
+        );
+        const activeConnections = connResult[0].count;
+
+        // Return usage data
+        return ({
+            project_name: "My Neon Project",
+            last_updated: new Date().toISOString(),
+            storage: {
+                usage: dbSize,
+                limit: 10 * 1024 * 1024 * 1024, // 10 GB = Free Tier storage limit
+            },
+            bandwidth: {
+                usage: 0, // Neon doesn't expose this via SQL
+                limit: 0,
+            },
+            active_connections: {
+                usage: activeConnections,
+                limit: 100, // Free tier allows up to 100 connections
+            },
+        });
+    } catch (error) {
+        console.error("❌ Failed to fetch Neon usage:", error);
+        // status(500).json({ error: "Failed to retrieve usage data" });
+    }
+}
+
+
 
 export default cloudinary;

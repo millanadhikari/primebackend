@@ -14,6 +14,7 @@ import authRoutes from './routes/authRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
+import cloudinaryRoutes from './routes/cloudinaryRoutes.js'
 // Import middleware
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -100,6 +101,8 @@ app.get('/health', async (req, res) => {
 //   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
 //   next();
 // });
+app.use('/api/cloudinary', cloudinaryRoutes)
+
 app.use('/api/auth', authRoutes);
 // app.use('/api/client', clientRoutes)
 app.use('/api/blog', blogRoutes);
@@ -117,13 +120,13 @@ app.use((req, res) => {
   });
 });
 
+
 console.log({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const data = await getCloudinaryUsage()
-console.log(data)
+
 
 app.listen(port, () => console.log(`listening on localhost:${port}`))
 // Error handling mid
