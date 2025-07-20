@@ -54,8 +54,8 @@ export class AuthController {
 
             res.cookie('refreshToken', result.tokens.refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
+                secure: true, // ✅ force it on Render
+                sameSite: "none", // ✅ allow cross-site cookies
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             });
 
@@ -294,7 +294,7 @@ export class AuthController {
     static async getProfile(req, res, next) {
         try {
             const userId = req.user.userId;
-      
+
 
             const user = await AuthService.getUserProfile(userId);
 
@@ -327,8 +327,8 @@ export class AuthController {
             next(error);
         }
     }
- 
-     static async updateUserById(req, res, next) {
+
+    static async updateUserById(req, res, next) {
         try {
             const userId = req.params.id
             const updateData = req.body;
@@ -344,7 +344,7 @@ export class AuthController {
             next(error);
         }
     }
- 
+
     /**
      * Get current user info
      * GET /api/auth/me
