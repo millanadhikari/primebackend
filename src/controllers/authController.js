@@ -170,6 +170,7 @@ export class AuthController {
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
                 path: "/",
+                domain: 'primebackend.onrender.com',
             });
 
             res.status(200).json({
@@ -184,6 +185,7 @@ export class AuthController {
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
                 path: "/",
+                domain: 'primebackend.onrender.com',
             });
 
             // Don't fail logout if token was already gone
