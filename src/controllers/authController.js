@@ -165,26 +165,39 @@ export class AuthController {
                 console.log('Token deleted successfully');
             }
 
-            res.clearCookie('refreshToken');
+            res.clearCookie("refreshToken", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                path: "/",
+            });
+
             res.status(200).json({
-                status: 'success',
-                message: 'Logout successful',
+                status: "success",
+                message: "Logout successful",
             });
         } catch (error) {
-            console.error('Logout error:', error.code, error.message);
-            res.clearCookie('refreshToken');
+            console.error("Logout error:", error.code, error.message);
+
+            res.clearCookie("refreshToken", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                path: "/",
+            });
 
             // Don't fail logout if token was already gone
-            if (error.code === 'P2025') {
+            if (error.code === "P2025") {
                 return res.status(200).json({
-                    status: 'success',
-                    message: 'Logout successful',
+                    status: "success",
+                    message: "Logout successful",
                 });
             }
 
             next(error);
         }
     }
+
     /**
      * Logout from all devices
      * POST /api/auth/logout-all
