@@ -46,6 +46,7 @@ const limiter = rateLimit({
 const allowedOrigins = [
   'http://localhost:3001',
   'https://primechoicecare.com.au',
+  'https://www.primechoicecare.com.au',
 ];
 
 app.use(cors({
