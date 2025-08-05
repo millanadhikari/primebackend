@@ -47,6 +47,7 @@ const allowedOrigins = [
   'http://localhost:3001',
   'https://primechoicecare.com.au',
   'https://www.primechoicecare.com.au',
+  'https://primecare-17puw3es7-millanadhikaris-projects.vercel.app'
 ];
 
 app.use(cors({
