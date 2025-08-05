@@ -141,10 +141,9 @@ export class ClientModel {
         }
     }
 
-    static async findAll({ page = 1, limit = 10, search = '', ageGroup = 'All', status = 'all' }) {
+    static async findAll({ page = 1, limit = 10, search = '', ageGroup = 'All', status = 'all', user }) {
         const take = parseInt(limit, 10);
         const skip = (parseInt(page, 10) - 1) * take;
-
         const filters = [];
 
         // 🔍 Search by name, email, phone
@@ -172,6 +171,15 @@ export class ClientModel {
             filters.push({ status });
         }
 
+        // ✅ Only return assigned clients for non-admin users
+        if (user?.role !== 'ADMIN') {
+            console.log("Applying assigned user filter for user ID:", user);
+            filters.push({
+                assignedUsers: {
+                    some: { id: user.userId },
+                },
+            });
+        }
         const where = filters.length ? { AND: filters } : {};
 
         const [clients, total] = await Promise.all([
@@ -290,8 +298,17 @@ export class ClientModel {
                         client: true,
                     },
                 },
-
-            }
+                assignedUsers: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        role: true,
+                        isActive: true,
+                    },
+                },
+            },
         });
     }
 
@@ -330,6 +347,14 @@ export class ClientModel {
 
             // Remove the `delete` key so Prisma doesn't try to delete it again
             delete updateData.documents.delete;
+        }
+        if (updateData.assignedUsers) {
+            const { connect = [], disconnect = [] } = updateData.assignedUsers;
+
+            updateData.assignedUsers = {
+                ...(connect.length > 0 && { connect }),
+                ...(disconnect.length > 0 && { disconnect }),
+            };
         }
 
         // Proceed to update the client

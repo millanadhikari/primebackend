@@ -56,7 +56,7 @@ export class AuthController {
                 httpOnly: true,
                 secure: true, // ✅ force it on Render
                 sameSite: "none", // ✅ allow cross-site cookies
-                path:"/",
+                path: "/",
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             });
 

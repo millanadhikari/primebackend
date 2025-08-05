@@ -7,44 +7,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-// User model with role-based access (Admin, Coordinator, Client)
-// model User {
-//     id        String   @id @default(cuid())
-//     email     String   @unique
-//     password  String
-//     role      UserRole @default(CLIENT)
-//     firstName String?
-//     lastName  String?
-//     createdAt DateTime @default(now())
-//     updatedAt DateTime @updatedAt
-//     isActive  Boolean  @default(true)
-
-//     // Different fields based on role
-//     // Admin fields
-//     adminLevel  AdminLevel? // Only for ADMIN role
-//     permissions String[] // Only for ADMIN role
-
-//     // Coordinator fields
-//     department String? // Only for COORDINATOR role
-//     region     String? // Only for COORDINATOR role
-
-//     // Client fields
-//     clientId String? // Only for CLIENT role
-//     company  String? // Only for CLIENT role
-
-//     // Common fields for all roles
-//     refreshTokens RefreshToken[]
-
-//     // For future implementation
-//     profileImage         String?
-//     isVerified           Boolean   @default(false)
-//     verificationToken    String?
-//     resetPasswordToken   String?
-//     resetPasswordExpires DateTime?
-
-//     @@map("users")
-// }
-
 model User {
     id                  String      @id @default(cuid())
     email               String      @unique
@@ -104,8 +66,10 @@ model User {
     inviteStaffViaSMS   Boolean @default(false)
 
     // Relations
-    refreshTokens RefreshToken[]
-    documents     Document[] // one-to-many
+    refreshTokens   RefreshToken[]
+    documents       Document[] // one-to-many
+    Client          Client?        @relation(fields: [clientId], references: [id])
+    assignedClients Client[]       @relation("UserAssignedClients")
 
     @@map("users")
 }
@@ -172,14 +136,16 @@ model Client {
     smsReminders  Boolean @default(false)
     invoiceTravel Boolean @default(false)
 
+    assignedUsers User[]     @relation("UserAssignedClients")
     // Arrays (stored as separate tables/relations)
-    contacts  Contact[] // one-to-many
-    teams     Team[] // many-to-many or one-to-many
-    documents Document[] // one-to-many
-    forms     Form[] // one-to-many
+    contacts      Contact[] // one-to-many
+    teams         Team[] // many-to-many or one-to-many
+    documents     Document[] // one-to-many
+    forms         Form[] // one-to-many
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    User      User[]
 }
 
 model Team {

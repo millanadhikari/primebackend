@@ -1,5 +1,6 @@
 import cloudinary from '../config/cloudinary.js';
 import prisma from '../config/database.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 import { hashPassword } from '../utils/password.js';
 
 /**
@@ -58,8 +59,9 @@ export class UserModel {
                     updatedAt: true
                 }
             });
-
+            await sendWelcomeEmail(userCreateData.email, userCreateData.firstName, userCreateData.defaultPassword);
             return user;
+
         } catch (error) {
             if (error.code === 'P2002') {
                 throw new Error('User with this email already exists');
@@ -254,9 +256,9 @@ export class UserModel {
 
     static async deleteById(id) {
         const user = await prisma.user.findUnique({
-        where: { id: id },
-        include: { documents: true },
-    });
+            where: { id: id },
+            include: { documents: true },
+        });
 
         if (user.profileImage) {
             const publicId = extractPublicId(user.profileImagePublicId);

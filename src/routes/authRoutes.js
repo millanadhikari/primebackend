@@ -26,7 +26,7 @@ router.put('/profile', AuthController.updateProfile);
 router.post('/change-password', AuthController.changePassword);
 router.post('/logout-all', AuthController.logoutAll);
 
-router.delete('/delete-account', AuthController.deleteUserById);
+router.delete('/:id', AuthController.deleteUserById);
 
 // Admin-only routes (example for future use)
 router.get('/users', requireAdmin, AuthController.getAllUsers);

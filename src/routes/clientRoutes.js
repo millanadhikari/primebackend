@@ -1,5 +1,5 @@
 import express from 'express'
-import {ClientController} from '../controllers/clientController.js'
+import { ClientController } from '../controllers/clientController.js'
 import { authenticateToken, requireAdmin, requireCoordinatorOrAdmin } from '../middleware/auth.js';
 
 const router = express.Router()
@@ -14,7 +14,7 @@ router.post('/signup',
 // CLIENT ROUTES
 // Get all clients (authentication required)')
 router.get('/',
-    // authenticateToken, requireCoordinatorOrAdmin, 
+    authenticateToken, requireCoordinatorOrAdmin, 
     ClientController.getAllClients);
 //Get client by ID (authenticaFion required)
 router.get('/:id',

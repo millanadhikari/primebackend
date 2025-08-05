@@ -33,6 +33,7 @@ export class ClientController {
     // get all clients 
     static async getAllClients(req, res, next) {
         try {
+            console.log("Decoded user:", req.user); // 👈 Log here
             const {
                 page = 1,
                 limit = 10,
@@ -41,12 +42,15 @@ export class ClientController {
                 status = 'all',   // all | active | inactive
             } = req.query;
 
+            const { id: userId, role } = req.user;
+
             const result = await ClientService.getAll({
                 page,
                 limit,
                 search,
                 ageGroup,
                 status,
+                user: req.user // ✅ only pass userId if not admin
             });
 
             res.status(200).json({
@@ -67,7 +71,7 @@ export class ClientController {
             const clientId = req.params.id;
             const updateData = req.body;
             console.log('Update datadfdfdfd:', updateData);
-            
+
 
             const updatedClient = await ClientService.updateClient(clientId, updateData);
 
@@ -133,5 +137,5 @@ export class ClientController {
      * Health check
      * GET /api/auth/health
      */
-  
+
 }
