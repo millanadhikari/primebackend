@@ -1,4 +1,4 @@
-import {resend} from '../utils/resendClient.js';
+import resend from '../utils/resendClient.js';
 
 export const sendWelcomeEmail = async (email, firstName, defaultPassword) => {
   try {
