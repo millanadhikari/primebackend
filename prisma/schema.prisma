@@ -56,6 +56,7 @@ model User {
     twoFactorEnabled     Boolean   @default(false)
     emailNotifications   Boolean   @default(true)
     smsNotifications     Boolean   @default(true)
+    isFirstLogin         Boolean   @default(true)
 
     // Timestamps
     createdAt DateTime @default(now())

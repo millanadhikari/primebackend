@@ -16,7 +16,8 @@ export class UserModel {
             email,
             password: hashedPassword,
             defaultPassword,
-            role: role || 'CLIENT'
+            role: role || 'CLIENT',
+            isFirstLogin: true, // Default to true for new users
         };
 
         // switch (role) {
@@ -56,7 +57,8 @@ export class UserModel {
                     status: true,
                     isVerified: true,
                     createdAt: true,
-                    updatedAt: true
+                    updatedAt: true,
+                    isFirstLogin: true,
                 }
             });
             await sendWelcomeEmail(userCreateData.email, userCreateData.firstName, userCreateData.defaultPassword);
@@ -117,6 +119,7 @@ export class UserModel {
                 kinPhone: true,
                 kinName: true,
                 kinRelation: true,
+                isFirstLogin: true,
 
 
             }

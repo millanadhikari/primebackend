@@ -1,5 +1,6 @@
 import cloudinary from '../config/cloudinary.js';
 import prisma from '../config/database.js';
+import { getAssignedClientEmailTemplate } from '../services/emailService.js';
 import { extractPublicId } from '../utils/cloudinaryUtils.js';
 import { hashPassword } from '../utils/password.js';
 
@@ -332,24 +333,47 @@ export class ClientModel {
     static async update(clientId, updateData) {
         const id = clientId;
 
-        // Manually delete related documents before updating the client
+        // TEST: Confirm email function works
+        // await getAssignedClientEmailTemplate({
+        //   staffEmail: "millanadhikari@gmail.com",
+        //   staffName: "John Doe",
+        //   clientName: "Test Client",
+        //   clientEmail: "testclient@example.com",
+        // });
+
+        // 1. Fetch existing assigned users
+        const existingClient = await prisma.client.findUnique({
+            where: { id },
+            include: { assignedUsers: true },
+        });
+
+        if (!existingClient) {
+            throw new Error("Client not found.");
+        }
+
+        // 2. Delete documents manually if requested
         if (updateData.documents?.delete) {
             const docsToDelete = updateData.documents.delete;
-
             for (const doc of docsToDelete) {
                 await prisma.document.deleteMany({
                     where: {
                         id: doc.id,
-                        clientId: id, // Ensure ownership
+                        clientId: id,
                     },
                 });
             }
-
-            // Remove the `delete` key so Prisma doesn't try to delete it again
             delete updateData.documents.delete;
         }
+
+        let newAssignedUserIds = [];
+
         if (updateData.assignedUsers) {
             const { connect = [], disconnect = [] } = updateData.assignedUsers;
+
+            const currentIds = existingClient.assignedUsers.map((u) => u.id);
+            newAssignedUserIds = connect
+                .map((u) => u.id)
+                .filter((id) => !currentIds.includes(id));
 
             updateData.assignedUsers = {
                 ...(connect.length > 0 && { connect }),
@@ -357,8 +381,11 @@ export class ClientModel {
             };
         }
 
-        // Proceed to update the client
-        return await prisma.client.update({
+        console.log("🟡 Current assigned user IDs:", existingClient.assignedUsers.map((u) => u.id));
+        console.log("🟢 New assigned user IDs to notify:", newAssignedUserIds);
+
+        // 3. Update client
+        const updatedClient = await prisma.client.update({
             where: { id },
             data: updateData,
             select: {
@@ -366,8 +393,33 @@ export class ClientModel {
                 email: true,
                 firstName: true,
                 lastName: true,
-            }
+            },
         });
+
+        // 4. Send emails to new assignees
+        if (newAssignedUserIds.length > 0) {
+            const newUsers = await prisma.user.findMany({
+                where: { id: { in: newAssignedUserIds } },
+            });
+
+            for (const user of newUsers) {
+                try {
+                    console.log(`📧 Sending client assignment email to ${user.email}`);
+                    await getAssignedClientEmailTemplate({
+                        staffEmail: user.email,
+                        staffName: `${user.firstName} ${user.lastName}`,
+                        clientName: `${updatedClient.firstName} ${updatedClient.lastName}`,
+                        clientEmail: updatedClient.email,
+                    });
+                } catch (error) {
+                    console.error(`❌ Failed to send email to ${user.email}:`, error);
+                }
+            }
+        } else {
+            console.log("ℹ️ No new users assigned. No emails sent.");
+        }
+
+        return updatedClient;
     }
 
 
