@@ -1,9 +1,10 @@
 import { parse } from "dotenv";
 import prisma from "../config/database.js";
+import { NotificationModel } from "./notificationModel.js";
 
 
 export class MessageModel {
-    static async createMessage(messageData) {
+    static async createMessage(messageData, io) {
         console.log("Creating message with data:", messageData);
         try {
             const message = await prisma.message.create({
@@ -15,13 +16,34 @@ export class MessageModel {
 
                 }
             })
-            return message
+            // 2. Find all admins
+            const admins = await prisma.user.findMany({
+                where: { role: 'ADMIN' },
+                select: { id: true, firstName: true, lastName: true },
+            });
 
+            // 3. Create notifications for each admin
+            for (const admin of admins) {
+                await NotificationModel.create({
+                    userId: admin.id,
+                    // title: 'New Message Received',
+                    message: `New message received from ${message.name || 'unknown sender'}`,
+                    type: 'message',
+                    actionUrl: `/crm/messages/${message.id}`,
+                    readStatus: false, // If you track read status
+                    createdAt: new Date(), // Usually handled by DB defaults
+                }, io); // Pass io instance if NotificationModel.create emits events
+            }
+
+            // 4. Return the created message
+            return message;
         } catch (error) {
-            console.error('Error creating message:', error);
+            console.error('Error creating message and notifications:', error);
             throw error;
         }
     }
+
+
 
     // Fetch all messages with pagination and search
     static async findAll(

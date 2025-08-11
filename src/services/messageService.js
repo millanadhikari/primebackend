@@ -1,10 +1,11 @@
 import { MessageModel } from "../models/messageModel.js";
+import { io } from "../server.js";
 
 
 export class MessageService {
     static async sendMessage(messageData) {
         try {
-            const post = await MessageModel.createMessage(messageData);
+            const post = await MessageModel.createMessage(messageData, io);
             return post;
         } catch (error) {
             console.error('Error in createPost:', error);

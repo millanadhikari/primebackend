@@ -3,6 +3,7 @@ import prisma from '../config/database.js';
 import { getAssignedClientEmailTemplate } from '../services/emailService.js';
 import { extractPublicId } from '../utils/cloudinaryUtils.js';
 import { hashPassword } from '../utils/password.js';
+import { NotificationModel } from './notificationModel.js';
 
 /**
  * User Model - Handles all database operations for users
@@ -329,17 +330,8 @@ export class ClientModel {
     //         }
     //     });
     // }
-
     static async update(clientId, updateData) {
         const id = clientId;
-
-        // TEST: Confirm email function works
-        // await getAssignedClientEmailTemplate({
-        //   staffEmail: "millanadhikari@gmail.com",
-        //   staffName: "John Doe",
-        //   clientName: "Test Client",
-        //   clientEmail: "testclient@example.com",
-        // });
 
         // 1. Fetch existing assigned users
         const existingClient = await prisma.client.findUnique({
@@ -347,19 +339,14 @@ export class ClientModel {
             include: { assignedUsers: true },
         });
 
-        if (!existingClient) {
-            throw new Error("Client not found.");
-        }
+        if (!existingClient) throw new Error("Client not found.");
 
-        // 2. Delete documents manually if requested
+        // 2. Handle document deletion if requested
         if (updateData.documents?.delete) {
             const docsToDelete = updateData.documents.delete;
             for (const doc of docsToDelete) {
                 await prisma.document.deleteMany({
-                    where: {
-                        id: doc.id,
-                        clientId: id,
-                    },
+                    where: { id: doc.id, clientId: id },
                 });
             }
             delete updateData.documents.delete;
@@ -367,9 +354,9 @@ export class ClientModel {
 
         let newAssignedUserIds = [];
 
+        // 3. Detect new assignments
         if (updateData.assignedUsers) {
             const { connect = [], disconnect = [] } = updateData.assignedUsers;
-
             const currentIds = existingClient.assignedUsers.map((u) => u.id);
             newAssignedUserIds = connect
                 .map((u) => u.id)
@@ -381,22 +368,14 @@ export class ClientModel {
             };
         }
 
-        console.log("🟡 Current assigned user IDs:", existingClient.assignedUsers.map((u) => u.id));
-        console.log("🟢 New assigned user IDs to notify:", newAssignedUserIds);
-
-        // 3. Update client
+        // 4. Update client
         const updatedClient = await prisma.client.update({
             where: { id },
             data: updateData,
-            select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-            },
+            select: { id: true, email: true, firstName: true, lastName: true },
         });
 
-        // 4. Send emails to new assignees
+        // 5. Notify and email new assignees
         if (newAssignedUserIds.length > 0) {
             const newUsers = await prisma.user.findMany({
                 where: { id: { in: newAssignedUserIds } },
@@ -404,6 +383,7 @@ export class ClientModel {
 
             for (const user of newUsers) {
                 try {
+                    // 5a. Send email
                     console.log(`📧 Sending client assignment email to ${user.email}`);
                     await getAssignedClientEmailTemplate({
                         staffEmail: user.email,
@@ -411,12 +391,23 @@ export class ClientModel {
                         clientName: `${updatedClient.firstName} ${updatedClient.lastName}`,
                         clientEmail: updatedClient.email,
                     });
+
+                    // 5b. Create notification and emit real-time 
+                    await NotificationModel.create({
+                        userId: user.id,
+                        title: "Client Assigned",
+                        message: `You have been assigned to client "${updatedClient.firstName} ${updatedClient.lastName}".`,
+                        type: 'client_assignment',
+                        clientId: updatedClient.id,
+                        actionUrl: `/crm/clients/${updatedClient.id}`,
+                        metadata: { clientName: `${updatedClient.firstName} ${updatedClient.lastName}` }
+                    });
                 } catch (error) {
-                    console.error(`❌ Failed to send email to ${user.email}:`, error);
+                    console.error(`❌ Failed to notify/send email to ${user.email}:`, error);
                 }
             }
         } else {
-            console.log("ℹ️ No new users assigned. No emails sent.");
+            console.log("ℹ️ No new users assigned. No emails or notifications sent.");
         }
 
         return updatedClient;
