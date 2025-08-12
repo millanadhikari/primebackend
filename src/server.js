@@ -19,6 +19,7 @@ import messageRoutes from './routes/messageRoutes.js';
 import cloudinaryRoutes from './routes/cloudinaryRoutes.js'
 import templateRoutes from './routes/templateRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import kpiRoutes from './routes/kpiRoutes.js';
 import { setSocketInstance } from './models/notificationModel.js';
 // Import middleware
 import path from 'path';
@@ -133,6 +134,7 @@ app.use('/api/upload', (req, res, next) => {
 app.use('/api/message', messageRoutes)
 app.use('/api/templates', templateRoutes)
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin-kpis', kpiRoutes)
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({

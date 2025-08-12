@@ -399,7 +399,7 @@ export class ClientModel {
                         message: `You have been assigned to client "${updatedClient.firstName} ${updatedClient.lastName}".`,
                         type: 'client_assignment',
                         clientId: updatedClient.id,
-                        actionUrl: `/crm/clients/${updatedClient.id}`,
+                        actionUrl: `/ crm/clients/${updatedClient.id}`,
                         metadata: { clientName: `${updatedClient.firstName} ${updatedClient.lastName}` }
                     });
                 } catch (error) {
