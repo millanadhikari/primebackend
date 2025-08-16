@@ -1,6 +1,5 @@
 
 import prisma from "../config/database.js";
-import { formatDistanceToNow } from "date-fns"; // npm install date-fns
 
 
 export class ActivitiesModel {
@@ -19,21 +18,7 @@ export class ActivitiesModel {
 
     static async createActivity({ type, description, status, userId, userRole, userName, targetId, targetType }) {
         try {
-            // let userRole = null;
-            // let userName = null;
-
-            // if (userId) {
-            //     const user = await prisma.user.findUnique({
-            //         where: { id: userId },
-            //         select: { firstName: true, lastName: true, role: true }
-            //     });
-
-            //     if (user) {
-            //         userRole = user.role;
-            //         userName = `${user.firstName} ${user.lastName}`;
-            //     }
-            // }
-
+         
             return await prisma.activity.create({
                 data: {
                     type,
