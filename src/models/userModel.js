@@ -2,7 +2,7 @@ import cloudinary from '../config/cloudinary.js';
 import prisma from '../config/database.js';
 import { sendWelcomeEmail } from '../services/emailService.js';
 import { hashPassword } from '../utils/password.js';
-
+import { ActivitiesModel } from './activitiesModel.js';
 /**
  * User Model - Handles all database operations for users
  */
@@ -20,20 +20,7 @@ export class UserModel {
             isFirstLogin: true, // Default to true for new users
         };
 
-        // switch (role) {
-        //     case 'ADMIN':
-        //         userCreateData.adminLevel = roleSpecificData.adminLevel || 'STANDARD';
-        //         userCreateData.permissions = roleSpecificData.permissions || [];
-        //         break;
-        //     case 'COORDINATOR':
-        //         userCreateData.department = roleSpecificData.department;
-        //         userCreateData.region = roleSpecificData.region;
-        //         break;
-        //     case 'CLIENT':
-        //         userCreateData.clientId = roleSpecificData.clientId;
-        //         userCreateData.company = roleSpecificData.company;
-        //         break;
-        // }
+
 
         if (roleSpecificData.firstName) userCreateData.firstName = roleSpecificData.firstName;
         if (roleSpecificData.lastName) userCreateData.lastName = roleSpecificData.lastName;
@@ -60,6 +47,18 @@ export class UserModel {
                     updatedAt: true,
                     isFirstLogin: true,
                 }
+            });
+            // 📌 Create a corresponding Activity log
+            await ActivitiesModel.createActivity({
+                type: "USER_CREATED",
+                description: `New user account created`,
+                userId: user.id, // Replace with actual admin ID or context
+                userRole: user.role,
+                userName: `${user.firstName} ${user.lastName}`,
+                targetType: "user",
+                targetId: String(user.id),
+
+                status: "SUCCESS"
             });
             await sendWelcomeEmail(userCreateData.email, userCreateData.firstName, userCreateData.defaultPassword);
             return user;

@@ -3,6 +3,7 @@ import prisma from '../config/database.js';
 import { getAssignedClientEmailTemplate } from '../services/emailService.js';
 import { extractPublicId } from '../utils/cloudinaryUtils.js';
 import { hashPassword } from '../utils/password.js';
+import { ActivitiesModel } from './activitiesModel.js';
 import { NotificationModel } from './notificationModel.js';
 
 /**
@@ -132,6 +133,17 @@ export class ClientModel {
                     createdAt: true,
 
                 }
+            });
+            await ActivitiesModel.createActivity({
+                type: "CLIENT_ADDED",
+                description: `New client registered`,
+                userId: client.id, // Replace with actual admin ID or context
+                userRole: 'CLIENT',
+                userName: `${client.firstName} ${client.lastName}`,
+
+                status: "INFO",
+                targetType: "client",
+                targetId: client.id,
             });
 
             return client;

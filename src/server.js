@@ -20,6 +20,7 @@ import cloudinaryRoutes from './routes/cloudinaryRoutes.js'
 import templateRoutes from './routes/templateRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import kpiRoutes from './routes/kpiRoutes.js';
+import activitiesRoutes from './routes/activitiesRoutes.js';
 import { setSocketInstance } from './models/notificationModel.js';
 // Import middleware
 import path from 'path';
@@ -122,7 +123,14 @@ app.get('/health', async (req, res) => {
 //   next();
 // });
 app.use('/api/cloudinary', cloudinaryRoutes)
-
+app.use('/api/activities', activitiesRoutes)
+// app.get('/api/activities', (req, res) => {
+//   res.json([
+//     { id: 1, name: 'Yoga Class', date: '2025-08-14' },
+//     { id: 2, name: 'Swimming Lesson', date: '2025-08-15' },
+//     { id: 3, name: 'Cooking Workshop', date: '2025-08-16' }
+//   ]);
+// });
 app.use('/api/auth', authRoutes);
 app.use('/api/client', clientRoutes)
 app.use('/api/blog', blogRoutes);

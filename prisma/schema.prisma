@@ -74,6 +74,7 @@ model User {
     FormTemplate    FormTemplate[]
     FilledForm      FilledForm[]
     notification    Notification[]
+    Activity        Activity[]
 
     @@map("users")
 }
@@ -299,11 +300,49 @@ model Notification {
 
     actionUrl String? // Optional URL the notification points to
     avatar    String? // Optional avatar image URL or path
-    clientId String? // Optional: reference client involved with notification
-    metadata Json? // Stores appointmentTime, clientName, etc.
+    clientId  String? // Optional: reference client involved with notification
+    metadata  Json? // Stores appointmentTime, clientName, etc.
 
     // Uncomment if you want to link to a related appointment/message/client, etc.
     // appointmentId Int?
     // messageId     Int?
     // clientId      Int?
+}
+
+enum ActivityType {
+    USER_CREATED
+    CLIENT_ADDED
+    MESSAGE_RECEIVED
+    APPOINTMENT_SCHEDULED
+    SYSTEM_ALERT
+    // extend as needed
+}
+
+enum ActivityStatus {
+    SUCCESS
+    INFO
+    WARNING
+    ERROR
+    // extend as needed
+}
+
+model Activity {
+    id          String       @id @default(cuid())
+    type        ActivityType
+    description String
+    user        User?        @relation(fields: [userId], references: [id])
+
+    userId   String? // This must be present!
+    userRole UserRole? // Stores user's enum role at creation
+    userName String?
+
+    createdAt DateTime       @default(now())
+    status    ActivityStatus
+
+    // New fields for clickable linking
+    targetType String? // e.g., "user", "invoice", "project"
+    targetId   String? // ID of the entity (kept as String for flexibility)
+
+    // Optional for extra structured data
+    meta Json?
 }

@@ -9,6 +9,7 @@ export class KpiController {
             const newClientsKPI = await KpiController.getTotalClientsKPI();
             const newUsersKPI = await KpiController.getTotalActiveUsersKPI();
             const newMessagesKPI = await KpiController.getTotalMessagesKPI();
+            const newActivityKPI = await KpiController.getTodaysActivitiesKPI();
 
 
 
@@ -18,6 +19,7 @@ export class KpiController {
                 totalClients: newClientsKPI,             // Example static data
                 activeUsers: newUsersKPI,             // Example static data
                 newMessages: newMessagesKPI,             // Example static data
+                totalActivity: newActivityKPI
                 // notificationsSent: 200,       // Example static data
                 // newClients: newClientsKPI     // Dynamic KPI from Prisma
             };
@@ -157,6 +159,51 @@ export class KpiController {
 
         return {
             value: totalMessagesNow,
+            change: parseFloat(change.toFixed(2)),
+            trend
+        };
+    }
+
+    static async getTodaysActivitiesKPI() {
+        const now = new Date();
+
+        // Start of today (midnight)
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        // Start of tomorrow (for end range)
+        const startOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        // Start of yesterday
+        const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+
+        // Count activities created today
+        const totalActivitiesToday = await prisma.activity.count({
+            where: {
+                createdAt: {
+                    gte: startOfToday,
+                    lt: startOfTomorrow
+                }
+            }
+        });
+
+        // Count activities created yesterday
+        const totalActivitiesYesterday = await prisma.activity.count({
+            where: {
+                createdAt: {
+                    gte: startOfYesterday,
+                    lt: startOfToday
+                }
+            }
+        });
+
+        // Calculate percentage change
+        const change = totalActivitiesYesterday === 0
+            ? totalActivitiesToday === 0 ? 0 : 100 // 100% if today has activities but yesterday had 0
+            : ((totalActivitiesToday - totalActivitiesYesterday) / totalActivitiesYesterday) * 100;
+
+        // Determine trend
+        const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
+
+        return {
+            value: totalActivitiesToday,
             change: parseFloat(change.toFixed(2)),
             trend
         };
