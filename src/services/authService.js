@@ -1,6 +1,7 @@
 import { UserModel } from '../models/userModel.js';
 import { comparePassword } from '../utils/password.js';
 import { generateTokens, verifyRefreshToken, generateSecureToken } from '../utils/jwt.js';
+import { passwordResetEmail } from './emailService.js';
 
 export class AuthService {
     static async register(userData) {
@@ -106,7 +107,10 @@ export class AuthService {
 
         await UserModel.setPasswordResetToken(email, resetToken, resetExpires);
 
-        return { message: 'Reset instructions sent to email' };
+        const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+        await passwordResetEmail(email, resetToken);
+        return { message: 'If that email exists, you will receive a reset link.' };
     }
 
     static async resetPassword(token, newPassword) {

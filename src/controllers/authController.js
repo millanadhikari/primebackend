@@ -254,6 +254,7 @@ export class AuthController {
      * POST /api/auth/reset-password
      */
     static async resetPassword(req, res, next) {
+        console.log('Reset password request body:', req.body);
         try {
             const { token, password } = req.body;
 

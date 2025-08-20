@@ -55,7 +55,7 @@ export class UserModel {
                 userId: user.id, // Replace with actual admin ID or context
                 userRole: user.role,
                 userName: `${user.firstName} ${user.lastName}`,
-                targetType: "user",
+                targetType: "staff",
                 targetId: String(user.id),
 
                 status: "SUCCESS"
