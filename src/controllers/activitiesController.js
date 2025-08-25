@@ -47,7 +47,7 @@ export class ActivitiesController {
 
 
         try {
-             await ActivitiesService.getAllActivities(currentUser, req, res, next);
+           return await ActivitiesService.getAllActivities(currentUser, req, res, next);
             // res.status(200).json({
             //     status: 'success',
             //     data: {

@@ -21,7 +21,7 @@ export class ClientService {
       return clients;
     } catch (error) {
       console.error('Error fetching clients:', error);
-      throw error;
+      throw error; 
     }
   }
   // ✅ New method for fetching by ID

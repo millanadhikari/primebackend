@@ -21,6 +21,9 @@ import templateRoutes from './routes/templateRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import kpiRoutes from './routes/kpiRoutes.js';
 import activitiesRoutes from './routes/activitiesRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import projectsRoutes from './routes/projectsRoutes.js';
+import tasksRoutes from './routes/tasksRoute.js';
 import { setSocketInstance } from './models/notificationModel.js';
 // Import middleware
 import path from 'path';
@@ -143,6 +146,9 @@ app.use('/api/message', messageRoutes)
 app.use('/api/templates', templateRoutes)
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin-kpis', kpiRoutes)
+app.use('/api/projects', projectsRoutes);
+app.use('/api/tasks', tasksRoutes);
+app.use('/api/ai', aiRoutes)
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({

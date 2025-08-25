@@ -66,6 +66,11 @@ model User {
     sendOnboardingEmail Boolean @default(true)
     inviteStaffViaSMS   Boolean @default(false)
 
+    //Project and tasks
+    assignedProjects Project[]     @relation("ProjectUsers")
+    assignedTasks    Task[]
+    comments         TaskComment[]
+
     // Relations
     refreshTokens   RefreshToken[]
     documents       Document[] // one-to-many
@@ -315,6 +320,7 @@ enum ActivityType {
     MESSAGE_RECEIVED
     APPOINTMENT_SCHEDULED
     SYSTEM_ALERT
+    PROJECT_ADDED
     // extend as needed
 }
 
@@ -345,4 +351,55 @@ model Activity {
 
     // Optional for extra structured data
     meta Json?
+}
+
+model Project {
+    id            String   @id @default(uuid())
+    name          String
+    description   String
+    assignedUsers User[]   @relation("ProjectUsers")
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+    tasks         Task[]
+}
+
+model Task {
+    id             String        @id @default(uuid())
+    title          String
+    description    String? // optional field
+    clientName     String
+    assignedUser   User          @relation(fields: [assignedUserId], references: [id])
+    assignedUserId String
+    projectId      String
+    project        Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    status         TaskStatus
+    priority       TaskPriority
+    dueDate        DateTime? // optional field
+    createdAt      DateTime      @default(now())
+    updatedAt      DateTime      @updatedAt
+    comments       TaskComment[]
+}
+
+model TaskComment {
+    id        String   @id @default(uuid())
+    task      Task     @relation(fields: [taskId], references: [id])
+    taskId    String
+    user      User     @relation(fields: [userId], references: [id])
+    userId    String
+    content   String
+    createdAt DateTime @default(now())
+}
+
+enum TaskStatus {
+    TODO
+    IN_PROGRESS
+    REVIEW
+    DONE
+}
+
+enum TaskPriority {
+    LOW
+    MEDIUM
+    HIGH
+    URGENT
 }
